@@ -27,7 +27,7 @@ $Message = @{
     To = "To Username <to.username@noneofyourbusiness.com.au>"
     From = "From Username <from.username@noneofyourbusiness.com.au>"
     Subject = 'Email Subject Change Me!'
-    Body = "This is just where you put the body of your email" + $abddata + "some more info" + $abedata + $obdata + $totaldata
+    #body = '' This has been moved into the Try block on Line 139.
     DeliveryNotificationOption = "OnSuccess, OnFailure"
     credential = $EmailCredential
 }
@@ -116,6 +116,7 @@ function Get-FolderDataSize {
         }
 }
 
+Write-Host "Starting script..."
 try {
     New-Item -ItemType Directory -Path $nfp
 
@@ -125,13 +126,17 @@ try {
     Get-FolderDataSize -Path $obpath -ExcludedPath $excludedfolder -OutputPath $obdata
     Get-FolderDataSize -Path $totalpath -ExcludedPath $excludedfolder -OutputPath $totaldata
 
+    Test-Path $abddata, $abedata, $obdata, $totaldata
+
     # This section is to get and add the content to the body of the email.
     $abdbody = Get-Content -Path $abedata | Out-String
     $abebody = Get-Content -Path $abddata | Out-String
     $obbody = Get-Content -Path $obdata | Out-String
     $totalbody = Get-Content -Path $totaldata | Out-String
 
-    #Sending Email Message
+    # Sending Email Message
+    # Message Body cannot be pulled from outside of the Try block, so the data cannot be added - this is a timing issue within PowerShell
+    $Message['Body'] = "This is just where you put the body of your email" + $abddata + "some more info" + $abedata + $obdata + $totaldata
     Send-MailMessage @Message
     
     Start-Sleep -Seconds 10   # Not required, mainly used so the data is deleted after the email is sent.
@@ -143,3 +148,4 @@ catch {
     write-error "Error: $_"
     # you can log or display additional information about the error here
 }
+Write-Host "Script completed."
